@@ -1,0 +1,17 @@
+{
+  "name": "angular-json-form",
+  "authors": [
+    "Sanchit <dev@minutephp.com>"
+  ],
+  "description": "simpler version of angular-schema-form",
+  "main": "",
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
