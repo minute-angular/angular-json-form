@@ -1,0 +1,27 @@
+{
+  "name": "angular-json-form",
+  "authors": [
+    "Sanchit <dev@minutephp.com>"
+  ],
+  "description": "simpler version of angular-schema-form",
+  "main": "",
+  "license": "MIT",
+  "homepage": "https://github.com/minutejs/angular-json-form",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "version": "0.0.1",
+  "_release": "0.0.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.0.1",
+    "commit": "e0f93f7dfd744c59dfbdc0091db5c7d65a1f892c"
+  },
+  "_source": "git://github.com/minutejs/angular-json-form.git",
+  "_target": "*",
+  "_originalSource": "minutejs/angular-json-form"
+}
