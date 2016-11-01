@@ -14,12 +14,12 @@
     "test",
     "tests"
   ],
-  "version": "0.0.1",
-  "_release": "0.0.1",
+  "version": "0.0.2",
+  "_release": "0.0.2",
   "_resolution": {
     "type": "version",
-    "tag": "v0.0.1",
-    "commit": "e0f93f7dfd744c59dfbdc0091db5c7d65a1f892c"
+    "tag": "v0.0.2",
+    "commit": "00fe4bb059b3161b08a968cb935beab603e546fc"
   },
   "_source": "git://github.com/minutejs/angular-json-form.git",
   "_target": "*",
