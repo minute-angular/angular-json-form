@@ -3,7 +3,7 @@
 module Directives {
     export class AngularJsonForm implements ng.IDirective {
         restrict = 'E';
-        scope = {schema: '=', data: '=', activeTab: '=?', valid: '=?'};
+        scope:any = {schema: '=', data: '=', activeTab: '=?', valid: '=?', connect: '=?'};
         template:string = `              
         <div class="row">
             <div class="col-xs-12" ng-init="horizontal = schema.layout !== 'vertical'">
