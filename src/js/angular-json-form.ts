@@ -3,12 +3,12 @@
 module Directives {
     export class AngularJsonForm implements ng.IDirective {
         restrict = 'E';
-        scope:any = {schema: '=', data: '=', activeTab: '=?', valid: '=?', connect: '=?'};
-        template:string = `              
+        scope: any = {schema: '=', data: '=', activeTab: '=?', valid: '=?', connect: '=?'};
+        template: string = `              
         <div class="row">
-            <div class="col-xs-12" ng-init="horizontal = schema.layout !== 'vertical'">
+            <div class="col-xs-12" ng-load="horizontal = schema.layout !== 'vertical'">
                 <ng-form class="{{horizontal && 'form-horizontal' || 'form'}}" name="mainForm">      
-                    <ng-include src="'render-group.html'" ng-init="clone = deep(schema);"></ng-include>
+                    <ng-include src="'render-group.html'" ng-load="clone = deep(schema);"></ng-include>
     
                     <script type="text/ng-template" id="render-group.html">
                         <div ng-repeat="child in clone.group.children" ng-init="tabs = getPath(parents, child.key, true);">
@@ -18,16 +18,16 @@ module Directives {
                                 <div class="{{horizontal && 'col-md-10' || ''}} tab-border">                        
                                     <div class="tabs-panel" ng-init="iTabs = {}">
                                         <ul class="nav nav-tabs" angular-sortable="">
-                                            <li class="tab-item" ng-class="{active: tab === iTabs.selectedTab}" ng-repeat="tab in tabs track by updates($index)">                                                
-                                                <a href="" ng-click="iTabs.selectedTab = tab" ng-init="iTabs.selectedTab = iTabs.selectedTab || tab;">
-                                                    <button class="close closeTab" type="button" ng-click="tabs.splice($index, 1); iTabs.selectedTab = tabs[tabs.length - 1]; redraw();">×</button>
+                                            <li class="tab-item" ng-class="{active: tab === iTabs.selectedTab}" ng-repeat="tab in tabs">                                                
+                                                <a href="" ng-click="iTabs.selectedTab = tab" ng-init="iTabs.selectedTab = iTabs.selectedTab || tab;" context-menu="tabOptions">
+                                                    <button class="close closeTab" type="button" ng-click="tabs.splice($index, 1); iTabs.selectedTab = tabs[tabs.length - 1];">×</button>
                                                     {{(child.caption || child.key) | ucfirst}} #{{$index+1}}
                                                 </a>
                                             </li>
-                                            <li><a href="" ng-click="tabs.push({}); iTabs.selectedTab = tabs[tabs.length - 1]; redraw();">{{child.add || ('Add ' + child.key)}}</a></li>
+                                            <li><a href="" ng-click="tabs.push({}); iTabs.selectedTab = tabs[tabs.length - 1];">{{child.add || ('Add ' + child.key)}}</a></li>
                                         </ul>
                                         <div class="tab-content">
-                                            <div class="tab-pane fade in active" ng-repeat="tab in tabs track by updates($index)"
+                                            <div class="tab-pane fade in active" ng-repeat="tab in tabs"
                                              ng-init="parents = add(parents, child.key, $index)" ng-if="tab === iTabs.selectedTab">
                                                 <ng-include src="'render-group.html'" ng-init="clone = child"></ng-include>
                                             </div>
@@ -46,7 +46,29 @@ module Directives {
                         <div class="form-group">
                             <label class="{{horizontal && 'col-md-2' || ''}} control-label"><span translate="">{{(clone.label || clone.key) | ucfirst}}:</span></label>
                             <div class="{{horizontal && 'col-md-10' || ''}}">
-                                <input type="{{clone.subType || 'text'}}" class="form-control" dynamic-attrs="clone.attrs" placeholder="{{clone.placeholder}}" dynamic-model="model" ng-required="clone.required">
+                                <input type="{{clone.subType || 'text'}}" class="form-control" dynamic-attrs="clone.attrs" placeholder="{{clone.placeholder}}" dynamic-model="model" 
+                                ng-required="clone.required" list="{{clone.datalist.length && ('list-' + $index + '-' + $parent.$index) || ''}}">
+                                <p class="help-block" ng-if="!!clone.hint">{{clone.hint}}</p>
+                                <datalist id="{{'list-' + $index + '-' + $parent.$index}}" ng-if="clone.datalist.length">
+                                    <option ng-repeat="item in clone.datalist" value="{{item}}" />
+                                </datalist>
+                            </div>
+                        </div>
+                    </script>
+                    
+                    <script type="text/ng-template" id="render-field-button.html">
+                        <div class="form-group">
+                            <label class="{{horizontal && 'col-md-2' || ''}} control-label"><span translate="">{{(clone.label || clone.key) | ucfirst}}:</span></label>
+                            <div class="{{horizontal && 'col-md-10' || ''}}">
+                                <div class="help-block">
+                                    <span ng-if="clone.hideValue !== true" ng-show="$eval(model)" class="text-muted" ng-if="clone.hideValue !== true">
+                                        <span class="{{clone.labelCss || 'label label-success'}}">{{$eval(model)}}</span> &nbsp;/&nbsp;
+                                    </span>
+                                    
+                                    <button type="button" class="{{clone.css || 'btn btn-default btn-sm'}}" dynamic-model="model" dynamic-button click="clone.click" item-data="data">
+                                        {{clone.caption || 'Click here'}}
+                                    </button>
+                                </div>
                                 <p class="help-block" ng-if="!!clone.hint">{{clone.hint}}</p>
                             </div>
                         </div>
@@ -77,7 +99,8 @@ module Directives {
                             <label class="{{horizontal && 'col-md-2' || ''}} control-label"><span translate="">{{(clone.label || clone.key) | ucfirst}}:</span></label>
                             <div class="{{horizontal && 'col-md-10' || ''}}">
                                 <select class="form-control" dynamic-attrs="clone.attrs" placeholder="{{clone.placeholder || 'Select..'}}" dynamic-model="model" ng-required="clone.required">
-                                    <option ng-repeat="option in clone.options" value="{{option.value || option}}">{{option.label || option}}</option>
+                                    <option value="" ng-if="clone.placeholder !== false">{{clone.placeholder}}</option>
+                                    <option ng-repeat="option in clone.options" value="{{option.value || option}}">{{option.label || option.value || option}}</option>
                                 </select>                               
                                 
                                 <p class="help-block" ng-if="!!clone.hint">{{clone.hint}}</p>
@@ -100,9 +123,9 @@ module Directives {
                     <script type="text/ng-template" id="render-field-checkbox.html">
                         <div class="form-group">
                             <label class="{{horizontal && 'col-md-2' || ''}} control-label"><span translate="">{{(clone.label || clone.key) | ucfirst}}:</span></label>
-                            <div class="{{horizontal && 'col-md-10' || ''}}">
+                            <div class="{{horizontal && 'col-md-10' || ''}}" ng-init="$eval(model + ' = forceObj('+model+')')">
                                 <label class="checkbox-inline" ng-repeat="option in clone.options">
-                                    <input type="checkbox" dynamic-model="model" ng-value="option.value || option"> {{option.label || option.value}}
+                                    <input type="checkbox" dynamic-model="model + '.' + option.value"> {{option.label || option.value}}
                                 </label>
                                 <p class="help-block" ng-if="!!clone.hint">{{clone.hint}}</p>
                             </div>
@@ -123,19 +146,31 @@ module Directives {
         </div>           
         `;
 
-        constructor(private $timeout:ng.ITimeoutService) {
+        constructor(private $timeout: ng.ITimeoutService) {
         }
 
-        static factory():ng.IDirectiveFactory {
-            var directive:ng.IDirectiveFactory = ($timeout:ng.ITimeoutService) => new AngularJsonForm($timeout);
+        static factory(): ng.IDirectiveFactory {
+            var directive: ng.IDirectiveFactory = ($timeout: ng.ITimeoutService) => new AngularJsonForm($timeout);
             directive.$inject = ["$timeout"];
             return directive;
         }
 
         compile = () => {
             return {
-                pre: function ($scope:any) {
+                pre: function ($scope: any) {
                     $scope.tmp = {count: 0};
+                    $scope.tabOptions = [
+                        ['Duplicate', ($itemScope, $event, modelValue, text, $li) => {
+                            $itemScope.tabs.splice($itemScope.$index + 1, 0, angular.copy($itemScope.tabs[$itemScope.$index]));
+                            $itemScope.iTabs.selectedTab = $itemScope.tabs[$itemScope.$index + 1];
+                        }],
+                        null, // Dividier
+                        ['Remove', ($itemScope, $event, modelValue, text, $li) => {
+                            $itemScope.tabs.splice($itemScope.$index, 1);
+                            $itemScope.iTabs.selectedTab = $itemScope.tabs[$itemScope.tabs.length - 1];
+                            //$scope.items.splice($itemScope.$index, 1);
+                        }]
+                    ];
 
                     $scope.add = (arr, key, index) => {
                         //console.log("arr, key, index: ", arr, key, index);
@@ -144,13 +179,13 @@ module Directives {
                         return clone;
                     };
 
-                    $scope.redraw = () => {
-                        this.$timeout(() => $scope.tmp.count += 100);
-                    };
-
                     $scope.getSelf = (data, parents) => {
                         var path = parents ? 'data.' + parents.join('.') : '';//.replace(/\[\d+\]$/, '') : '';
                         return path ? $scope.$eval(path) : data;
+                    };
+
+                    $scope.forceObj = (data) => {
+                        return angular.isObject(data) ? data : {};
                     };
 
                     $scope.getPath = (parents, key, arr) => {
@@ -189,21 +224,38 @@ module Directives {
         }
     }
 
+    export class DynamicButton implements ng.IDirective {
+        restrict = 'A';
+        require = 'ngModel';
+        scope: any = {click: '&', itemData: '=?'};
+
+        static instance(): any {
+            return new DynamicButton();
+        }
+
+        link = ($scope: any, element: ng.IAugmentedJQuery, attrs: ng.IAttributes, ngModel: ng.INgModelController) => {
+            element.click(() => {
+                let click = $scope.click();
+                let promise = click(ngModel.$viewValue, $scope.itemData).then((value) => ngModel.$setViewValue(value));
+            });
+        }
+    }
+
     export class DynamicModel implements ng.IDirective {
         restrict = 'A';
         terminal = true;
         priority = 100000;
 
-        constructor(private $compile:ng.ICompileService, private $parse:ng.IParseService) {
+        constructor(private $compile: ng.ICompileService, private $parse: ng.IParseService) {
         }
 
-        static factory():ng.IDirectiveFactory {
-            var directive:ng.IDirectiveFactory = ($compile:ng.ICompileService, $parse:ng.IParseService) => new DynamicModel($compile, $parse);
+        static factory(): ng.IDirectiveFactory {
+            var directive: ng.IDirectiveFactory = ($compile: ng.ICompileService, $parse: ng.IParseService) => new DynamicModel($compile, $parse);
             directive.$inject = ["$compile", "$parse"];
             return directive;
         }
 
-        link = ($scope:any, elem:ng.IAugmentedJQuery) => {
+        link = ($scope: any, elem: ng.IAugmentedJQuery) => {
             let name = this.$parse(elem.attr('dynamic-model'))($scope);
             elem.removeAttr('dynamic-model');
             elem.attr('ng-model', name);
@@ -211,15 +263,29 @@ module Directives {
         }
     }
 
+    export class ngLoad implements ng.IDirective {
+        restrict = 'A';
+        scope: any = {ngLoad: '&?'};
+        priority = 450;
+
+        static instance(): any {
+            return new ngLoad();
+        }
+
+        link = ($scope: any, elem: ng.IAugmentedJQuery, attrs: ng.IAttributes) => {
+            $scope.$watch(() => $scope.$eval($scope.ngLoad), () => 1, true);
+        }
+    }
+
     export class DynamicAttrs implements ng.IDirective {
         restrict = 'A';
-        scope = {dynamicAttrs: '=?'};
+        scope: any = {dynamicAttrs: '=?'};
 
-        static instance():any {
+        static instance(): any {
             return new DynamicAttrs();
         }
 
-        link = ($scope:any, elem:ng.IAugmentedJQuery) => {
+        link = ($scope: any, elem: ng.IAugmentedJQuery) => {
             angular.forEach($scope.dynamicAttrs, function (v, k) {
                 elem.attr(k, v);
             });
@@ -229,21 +295,22 @@ module Directives {
     export class AngularSortable implements ng.IDirective {
         restrict = 'A';
 
-        constructor(private $compile:ng.ICompileService, private $timeout:ng.ITimeoutService) {
+        constructor(private $compile: ng.ICompileService, private $timeout: ng.ITimeoutService) {
         }
 
-        static factory():ng.IDirectiveFactory {
-            var directive:ng.IDirectiveFactory = ($compile:ng.ICompileService, $timeout:ng.ITimeoutService) => new AngularSortable($compile, $timeout);
+        static factory(): ng.IDirectiveFactory {
+            var directive: ng.IDirectiveFactory = ($compile: ng.ICompileService, $timeout: ng.ITimeoutService) => new AngularSortable($compile, $timeout);
             directive.$inject = ["$compile", "$timeout"];
             return directive;
         }
 
-        link = ($scope:any, elements:any, attrs:any) => {
+        link = ($scope: any, elements: any, attrs: any) => {
             let model = $scope.tabs;
 
             var tabs = elements.sortable({
                 "items": attrs.draggable || '> .tab-item',
-                "axis": attrs.axis || "x",
+                "container": "parent",
+                //"axis": attrs.axis || "x",
                 "start": (event, ui) => {
                     ui.item.startPos = ui.item.index();
                 },
@@ -256,7 +323,7 @@ module Directives {
                         model.splice(newIndex + (backward ? 0 : 1), 0, model[oldIndex]);
                         model.splice(oldIndex + (backward ? 1 : 0), 1);
 
-                        $scope.redraw();
+                        this.$timeout(() => 1, 1);
                     }
                 }
             });
@@ -267,31 +334,31 @@ module Directives {
     export class wysiwyg implements ng.IDirective {
         restrict = 'A';
         require = 'ngModel';
-        scope = {};
+        scope: any = {};
 
         constructor(private $sce) {
         }
 
-        static factory():ng.IDirectiveFactory {
-            var directive:ng.IDirectiveFactory = ($sce) => new wysiwyg($sce);
+        static factory(): ng.IDirectiveFactory {
+            var directive: ng.IDirectiveFactory = ($sce) => new wysiwyg($sce);
             directive.$inject = ["$sce"];
             return directive;
         }
 
-        link = ($scope:any, element:ng.IAugmentedJQuery, attrs:ng.IAttributes, ngModel) => {
+        link = ($scope: any, element: ng.IAugmentedJQuery, attrs: ng.IAttributes, ngModel) => {
             ngModel.$render = () => {
                 console.log("render: ", 1);
                 element.html(this.$sce.getTrustedHtml(ngModel.$viewValue || ''));
             };
 
-            element.on('blur keyup change', function() {
+            element.on('blur keyup change', function () {
                 $scope.$evalAsync(read);
             });
 
             function read() {
                 var html = element.html();
 
-                if ( html == '<br>' ) {
+                if (html == '<br>') {
                     html = '';
                 }
 
@@ -300,10 +367,12 @@ module Directives {
         }
     }
 
-    angular.module('AngularJsonForm', ['angular.filter'])
+    angular.module('AngularJsonForm', ['angular.filter', 'ui.bootstrap.contextMenu'])
         .directive('angularJsonForm', AngularJsonForm.factory())
         .directive('dynamicModel', DynamicModel.factory())
+        .directive('ngLoad', ngLoad.instance)
         .directive('dynamicAttrs', DynamicAttrs.instance)
+        .directive('dynamicButton', DynamicButton.instance)
         .directive('angularSortable', AngularSortable.factory())
         .directive('contenteditable', wysiwyg.factory());
 }
